@@ -12,7 +12,7 @@ typedef struct {
 // function declaration:
 InputBuffer* new_input_buffer();
 void print_prompt();
-void read_input(InputBuffer* inp);
+void read_input(InputBuffer* input_buffer);
 void close_input_buffer();
 
 int main(int argc, char* argv[])
