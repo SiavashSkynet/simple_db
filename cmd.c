@@ -35,17 +35,17 @@ int main(int argc, char* argv[])
 
 InputBuffer* new_input_buffer()
 {
-  InputBuffer* input_buffer = (InputBuffer*)malloc(sizeof(InputBuffer));
+    InputBuffer* input_buffer = (InputBuffer*)malloc(sizeof(InputBuffer));
     if( input_buffer == NULL)
     {
         perror("Unable to allocate buffer");
         exit(1);
     }
-  input_buffer->buffer = NULL;
-  input_buffer->buffer_length = 0;
-  input_buffer->input_length = 0;
+    input_buffer->buffer = NULL;
+    input_buffer->buffer_length = 0;
+    input_buffer->input_length = 0;
 
-  return input_buffer;
+    return input_buffer;
 }
 
 void print_prompt()
