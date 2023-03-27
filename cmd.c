@@ -8,6 +8,14 @@ typedef struct {
     size_t buffer_length;
     size_t input_length;
 } InputBuffer;
+
+typedef enum {
+  META_COMMAND_SUCCESS,
+  META_COMMAND_UNRECOGNIZED_COMMAND
+} MetaCommandResult;
+
+typedef enum { PREPARE_SUCCESS, PREPARE_UNRECOGNIZED_STATEMENT } PrepareResult;
+
 // function declaration:
 InputBuffer* new_input_buffer();
 void print_prompt();
