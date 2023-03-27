@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
                 case META_COMMAND_SUCCESS:
                     close_input_buffer(input_buffer);
                     exit(EXIT_SUCCESS);
-                    break;
+                    continue;
                 case META_COMMAND_UNRECOGNIZED_COMMAND:
                     printf("Wrong meta command\n");
                     continue;
@@ -53,10 +53,10 @@ int main(int argc, char* argv[])
         {
         case PREPARE_SUCCESS:
             execute_statement(statement_command);
-            break;
+            continue;;
         case PREPARE_UNRECOGNIZED_STATEMENT:
             printf("undefined statement\n");
-            break;
+            continue;;
         }
     }
     free(statement_command);
