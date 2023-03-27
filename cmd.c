@@ -21,6 +21,7 @@ InputBuffer* new_input_buffer();
 void print_prompt();
 void read_input(InputBuffer* input_buffer);
 void close_input_buffer();
+MetaCommandResult do_meta_command(InputBuffer* input_buffer);
 
 int main(int argc, char* argv[])
 {
@@ -33,7 +34,7 @@ int main(int argc, char* argv[])
         close_input_buffer(input_buffer);
         exit(EXIT_SUCCESS);
         } else {
-        printf("Unrecognized command '%s'.\n", input_buffer->buffer);
+            printf("Unrecognized command '%s'.\n", input_buffer->buffer);
         }
     }
 }
@@ -80,5 +81,14 @@ void close_input_buffer(InputBuffer* input_buffer)
     if (input_buffer != NULL) {
         free(input_buffer->buffer);
         free(input_buffer);
+    }
+}
+
+MetaCommandResult do_meta_command(InputBuffer* input_buffer)
+{
+    if (strcmp(input_buffer->buffer, ".exit") == 0) {
+        exit(EXIT_SUCCESS);
+    } else {
+        return META_COMMAND_UNRECOGNIZED_COMMAND;
     }
 }
