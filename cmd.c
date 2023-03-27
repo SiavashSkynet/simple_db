@@ -38,17 +38,25 @@ int main(int argc, char* argv[])
         print_prompt();
         read_input(input_buffer);
         if(input_buffer->buffer[0] == '.'){
-            if(!do_meta_command(input_buffer)){
-                close_input_buffer(input_buffer);
-                exit(EXIT_SUCCESS);
-            }
-            else{
-                printf("Wrong meta command\n");
-                continue;
+            switch(do_meta_command(input_buffer))
+            {
+                case META_COMMAND_SUCCESS:
+                    close_input_buffer(input_buffer);
+                    exit(EXIT_SUCCESS);
+                    break;
+                case META_COMMAND_UNRECOGNIZED_COMMAND:
+                    printf("Wrong meta command\n");
+                    continue;
             }
         }
-        if(!prepare_statement(input_buffer, statement_command)){
+        switch ((prepare_statement(input_buffer, statement_command)))
+        {
+        case PREPARE_SUCCESS:
             execute_statement(statement_command);
+            break;
+        case PREPARE_UNRECOGNIZED_STATEMENT:
+            printf("undefined statement\n");
+            break;
         }
     }
     free(statement_command);
