@@ -16,12 +16,19 @@ typedef enum {
 
 typedef enum { PREPARE_SUCCESS, PREPARE_UNRECOGNIZED_STATEMENT } PrepareResult;
 
-// function declaration:
+typedef enum { STATEMENT_INSERT, STATEMENT_SELECT } StatementType;
+typedef struct {
+  StatementType type;
+} Statement;
+
+// functions declaration:
 InputBuffer* new_input_buffer();
 void print_prompt();
 void read_input(InputBuffer* input_buffer);
 void close_input_buffer();
 MetaCommandResult do_meta_command(InputBuffer* input_buffer);
+PrepareResult prepare_statement(InputBuffer* input_buffer,Statement* statement);
+void execute_statement(Statement* statement);
 
 int main(int argc, char* argv[])
 {
@@ -92,3 +99,29 @@ MetaCommandResult do_meta_command(InputBuffer* input_buffer)
         return META_COMMAND_UNRECOGNIZED_COMMAND;
     }
 }
+
+PrepareResult prepare_statement(InputBuffer* input_buffer,
+                                Statement* statement) {
+  if (strncmp(input_buffer->buffer, "insert", 6) == 0) {
+    statement->type = STATEMENT_INSERT;
+    return PREPARE_SUCCESS;
+  }
+  if (strcmp(input_buffer->buffer, "select") == 0) {
+    statement->type = STATEMENT_SELECT;
+    return PREPARE_SUCCESS;
+  }
+
+  return PREPARE_UNRECOGNIZED_STATEMENT;
+}
+
+void execute_statement(Statement* statement) {
+  switch (statement->type) {
+    case (STATEMENT_INSERT):
+      printf("This is where we would do an insert.\n");
+      break;
+    case (STATEMENT_SELECT):
+      printf("This is where we would do a select.\n");
+      break;
+  }
+}
+
