@@ -3,6 +3,16 @@
 #include <stdbool.h>
 #include <string.h>
 
+#define COLUMN_USERNAME_SIZE 32
+#define COLUMN_EMAIL_SIZE 255
+
+typedef struct
+{
+    u_int32_t id;
+    char username[COLUMN_USERNAME_SIZE];
+    char email_address[COLUMN_EMAIL_SIZE];
+}row;
+
 typedef struct {
     char* buffer;
     size_t buffer_length;
