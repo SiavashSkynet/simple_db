@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdint.h>
 
 #define size_of_attribute(Struct, Attribute) sizeof(((Struct*)0)->Attribute)
 #define COLUMN_USERNAME_SIZE 32
@@ -13,22 +14,22 @@ typedef struct
     char email_address[COLUMN_EMAIL_SIZE];
 }Row;
 
-const u_int32_t ID_SIZE = size_of_attribute(Row, id);
-const u_int32_t USERNAME_SIZE = size_of_attribute(Row, username);
-const u_int32_t EMAIL_SIZE = size_of_attribute(Row, email_address);
-const u_int32_t ID_OFFSET = 0;
+const uint32_t ID_SIZE = size_of_attribute(Row, id);
+const uint32_t USERNAME_SIZE = size_of_attribute(Row, username);
+const uint32_t EMAIL_SIZE = size_of_attribute(Row, email_address);
+const uint32_t ID_OFFSET = 0;
 
-const u_int32_t USERNAME_OFFSET = ID_OFFSET + ID_SIZE;
-const u_int32_t EMAIL_OFFSET = USERNAME_OFFSET + USERNAME_SIZE;
-const u_int32_t ROW_SIZE = ID_SIZE + USERNAME_SIZE + EMAIL_SIZE;
+const uint32_t USERNAME_OFFSET = ID_OFFSET + ID_SIZE;
+const uint32_t EMAIL_OFFSET = USERNAME_OFFSET + USERNAME_SIZE;
+const uint32_t ROW_SIZE = ID_SIZE + USERNAME_SIZE + EMAIL_SIZE;
 
-const u_int32_t PAGE_SIZE = 4096;
+const uint32_t PAGE_SIZE = 4096;
 #define TABLE_MAX_PAGES 100
-const u_int32_t ROWS_PER_PAGE = PAGE_SIZE / ROW_SIZE;
-const u_int32_t TABLE_MAX_ROWS = ROWS_PER_PAGE * TABLE_MAX_PAGES;
+const uint32_t ROWS_PER_PAGE = PAGE_SIZE / ROW_SIZE;
+const uint32_t TABLE_MAX_ROWS = ROWS_PER_PAGE * TABLE_MAX_PAGES;
 
 typedef struct {
-  u_int32_t num_rows;
+  uint32_t num_rows;
   void* pages[TABLE_MAX_PAGES];
 } Table;
 
@@ -43,7 +44,7 @@ typedef enum {
   META_COMMAND_UNRECOGNIZED_COMMAND
 } MetaCommandResult;
 
-typedef enum { PREPARE_SUCCESS, PREPARE_UNRECOGNIZED_STATEMENT, PREPARE_SYNTAX_ERROR } PrepareResult;
+typedef enum { PREPARE_SUCCESS, PREPARE_UNRECOGNIZED_STATEMENT, PREPARE_SYNTAX_ERROR, EXECUTE_TABLE_FULL} PrepareResult;
 
 typedef enum { STATEMENT_INSERT, STATEMENT_SELECT } StatementType;
 typedef struct {
@@ -58,10 +59,11 @@ void read_input(InputBuffer* input_buffer);
 void close_input_buffer();
 MetaCommandResult do_meta_command(InputBuffer* input_buffer);
 PrepareResult prepare_statement(InputBuffer* input_buffer,Statement* statement);
-void execute_statement(Statement* statement);
+void execute_statement(Statement* statement,  Table* table);
 
 int main(int argc, char* argv[])
 {
+    Table* table = new_table();
     Statement* statement_command = (Statement*)malloc(sizeof(Statement));
     Row* new_row = (Row*)malloc(sizeof(Row));
     InputBuffer* input_buffer = new_input_buffer();
@@ -83,7 +85,7 @@ int main(int argc, char* argv[])
         switch ((prepare_statement(input_buffer, statement_command)))
         {
         case PREPARE_SUCCESS:
-            execute_statement(statement_command);
+            execute_statement(statement_command, );
             continue;;
         case PREPARE_UNRECOGNIZED_STATEMENT:
             printf("undefined statement\n");
@@ -170,7 +172,10 @@ PrepareResult prepare_statement(InputBuffer* input_buffer,
   return PREPARE_UNRECOGNIZED_STATEMENT;
 }
 
-void execute_statement(Statement* statement) {
+void execute_statement(Statement* statement, Table* table) {
+  if(table->num_rows == TABLE_MAX_ROWS){
+      return EXECUTE_TABLE_FULL;
+  }
   switch (statement->type) {
     case (STATEMENT_INSERT):
       printf("This is where we would do an insert.\n");
@@ -195,15 +200,37 @@ void deserialize_row(void* source, Row* destination)
   memcpy(&(destination->email_address), source + EMAIL_OFFSET, EMAIL_SIZE);
 }
 
-void* row_slot(Table* table, u_int32_t row_num)
+void* row_slot(Table* table, uint32_t row_num)
 {
-  u_int32_t page_num = row_num / ROWS_PER_PAGE;
+  uint32_t page_num = row_num / ROWS_PER_PAGE;
   void* page = table->pages[page_num];
   if (page == NULL) {
     // Allocate memory only when we try to access page
     page = table->pages[page_num] = malloc(PAGE_SIZE);
   }
-  u_int32_t row_offset = row_num % ROWS_PER_PAGE;
-  u_int32_t byte_offset = row_offset * ROW_SIZE;
+  uint32_t row_offset = row_num % ROWS_PER_PAGE;
+  uint32_t byte_offset = row_offset * ROW_SIZE;
   return page + byte_offset;
+}
+
+Table* new_table()
+{
+  Table* table = (Table*)malloc(sizeof(Table));
+  table->num_rows = 0;
+  for (uint32_t i = 0; i < TABLE_MAX_PAGES; i++) {
+     table->pages[i] = NULL;
+  }
+  return table;
+}
+
+void free_table(Table* table) {
+    for (int i = 0; table->pages[i]; i++) {
+	free(table->pages[i]);
+    }
+    free(table);
+}
+
+void print_row(Row* row)
+{
+  printf("(%d, %s, %s)\n", row->id, row->username, row->email_address);
 }
